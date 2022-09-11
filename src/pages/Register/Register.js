@@ -2,6 +2,7 @@ import React from 'react'
 import styles from "./Register.module.css"
 
 import { useState, useEffect } from 'react'
+import { useAuthentication } from '../../hooks/useAuthentication'
 
 const Register = () => {
     //*Criação dos Hooks:
@@ -11,24 +12,35 @@ const Register = () => {
     const [confirmPassword, setConfirmPassword] = useState("")
     const [error, setError] = useState("")
 
+    //*Importando o Hook de autentificação do user e envio para o banco de dados:
+    const { createUser, error: authError, loading } = useAuthentication()
+
 
     //*Função para envio de dados:
-    const handleSubmit = (event) => {
+    const handleSubmit = async (event) => {
         event.preventDefault()
 
         setError("")
         const user = {
-            displayName, email, password
+            displayName, email, password,
         }
 
         //*Validações a partir do valores cadastrados:
-        if (password != confirmPassword) {
+        if (password !== confirmPassword) {
             setError("As senhas precisam ser iguais!!")
             return
         }
 
-        console.log(user)
+        const res = await createUser(user)
+
+        console.log(res)
     }
+
+    useEffect(() => {
+        if (authError) {
+            setError(authError)
+        }
+    }, [authError])
 
 
 
@@ -56,7 +68,8 @@ const Register = () => {
                     <input type="password" name="confirmPassword" required placeholder='Confirm your password' value={confirmPassword} onChange={(event) => setConfirmPassword(event.target.value)} />
                 </label>
 
-                <button type="submit" className='btn'>Register</button>
+                {!loading && <button className='btn'>Register</button>}
+                {loading && (<button className='btn' disabled>Hold...</button>)}
                 {error && <p className='error'>{error}</p>}
             </form>
         </div>
